@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8"/>
     <title>symbolic_choice.ml &mdash; Coverage report</title>
-    <meta name="description" content="78.01% coverage in src/symbolic_choice.ml">
+    <meta name="description" content="78.84% coverage in src/symbolic_choice.ml">
     <link rel="stylesheet" href="../coverage.css"/>
     <script src="../highlight.pack.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
@@ -15,7 +15,7 @@
           <span class="dirname">src/</span>symbolic_choice.ml
         </a>
       </h1>
-      <h2>78.01%</h2>
+      <h2>78.84%</h2>
     </div>
     <div id="navbar">
       <span class="unvisited" style="top:3.97%"></span>
@@ -35,7 +35,6 @@
       <span class="unvisited" style="top:34.44%"></span>
       <span class="some-visited" style="top:38.85%"></span>
       <span class="some-visited" style="top:42.83%"></span>
-      <span class="unvisited" style="top:43.05%"></span>
       <span class="unvisited" style="bottom:49.01%"></span>
       <span class="unvisited" style="bottom:48.79%"></span>
       <span class="unvisited" style="bottom:48.34%"></span>
@@ -259,7 +258,7 @@
 <a id="L192"></a><span > </span>
 <a id="L193"></a><span class="visited"> </span>
 <a id="L194"></a><span class="some-visited"> </span>
-<a id="L195"></a><span class="unvisited"> </span>
+<a id="L195"></a><span class="visited"> </span>
 <a id="L196"></a><span > </span>
 <a id="L197"></a><span > </span>
 <a id="L198"></a><span class="visited"> </span>
@@ -1036,25 +1035,25 @@ end = struct
   include M
 
   let select b ({ Thread.pc; solver = S (solver_module, s); _ } as thread) =
-    <span data-count="215">l</span>et v = Expr.simplify b in
-    <span data-count="215">m</span>atch v.e with
+    <span data-count="250">l</span>et v = Expr.simplify b in
+    <span data-count="250">m</span>atch v.e with
     | <span data-count="0">V</span>al True -&gt; M.return (true, thread)
     | <span data-count="0">V</span>al False -&gt; M.return (false, thread)
     | Val (Num (I32 _)) -&gt; assert false
-    | <span data-count="215">_</span> -&gt; (
+    | <span data-count="250">_</span> -&gt; (
       let module Solver = (val solver_module) in
       let with_v = v :: pc in
-      let with_not_v = S.Bool.no<span data-count="215">t</span> v :: pc in
+      let with_not_v = S.Bool.no<span data-count="250">t</span> v :: pc in
       let sat_true = Solver.check s with_v in
-      <span data-count="213">l</span>et sat_false = Solver.check s with_not_v in
-      <span data-count="211">m</span>atch (sat_true, sat_false) with
+      <span data-count="250">l</span>et sat_false = Solver.check s with_not_v in
+      <span data-count="249">m</span>atch (sat_true, sat_false) with
       | <span data-count="0">f</span>alse, false -&gt; M.empty
       | <span data-count="0">t</span>rue, false | <span data-count="0">f</span>alse, true -&gt; M.return (sat_true, thread)
-      | <span data-count="211">t</span>rue, true -&gt;
+      | <span data-count="249">t</span>rue, true -&gt;
         if print_choice then <span data-count="0">F</span>ormat.pp_st<span data-count="0">d</span> "CHOICE: %a@." Expr.pp v;
-        <span data-count="211">l</span>et thread1 = Thread.clone { thread with pc = with_v } in
-        <span data-count="211">l</span>et thread2 = Thread.clone { thread with pc = with_not_v } in
-        <span data-count="211">M</span>.cons (true, thread1) (M.retur<span data-count="210">n</span> (false, thread2)) )
+        <span data-count="249">l</span>et thread1 = Thread.clone { thread with pc = with_v } in
+        <span data-count="249">l</span>et thread2 = Thread.clone { thread with pc = with_not_v } in
+        <span data-count="249">M</span>.cons (true, thread1) (M.retur<span data-count="249">n</span> (false, thread2)) )
 
   let fix_symbol (e : Expr.t) pc =
     <span data-count="1">m</span>atch e.e with
@@ -1121,7 +1120,7 @@ end
 module CList = Make (struct
   include List
 
-  let return v = <span data-count="212">[</span> v ]
+  let return v = <span data-count="252">[</span> v ]
 
   let empty = []
 
@@ -1146,52 +1145,52 @@ module WQ = struct
     }
 
   let take_as_producer q =
-    <span data-count="238">M</span>utex.lock q.mutex;
-    <span data-count="238">q</span>.producers &lt;- q.producers - 1;
+    <span data-count="282">M</span>utex.lock q.mutex;
+    <span data-count="282">q</span>.producers &lt;- q.producers - 1;
     let r =
       try
-        while Queue.is_empt<span data-count="260">y</span> q.queue do
-          <span data-count="46">i</span>f q.producers = <span data-count="24">0</span> || q.faile<span data-count="0">d</span> then <span data-count="24">r</span>aise Exit;
-          <span data-count="22">C</span>ondition.wai<span data-count="22">t</span> q.cond q.mutex
+        while Queue.is_empt<span data-count="298">y</span> q.queue do
+          <span data-count="42">i</span>f q.producers = <span data-count="24">0</span> || q.faile<span data-count="0">d</span> then <span data-count="24">r</span>aise Exit;
+          <span data-count="18">C</span>ondition.wai<span data-count="16">t</span> q.cond q.mutex
         done;
         let v = Queue.pop q.queue in
-        <span data-count="214">q</span>.producers &lt;- q.producers + 1;
+        <span data-count="256">q</span>.producers &lt;- q.producers + 1;
         Some v
       with <span data-count="24">E</span>xit -&gt;
         Condition.broadcast q.cond;
         <span data-count="24">N</span>one
     in
     Mutex.unlock q.mutex;
-    <span data-count="238">r</span>
+    <span data-count="280">r</span>
 
   let take_as_consumer q =
-    <span data-count="122">M</span>utex.lock q.mutex;
-    <span data-count="122">l</span>et r =
+    <span data-count="132">M</span>utex.lock q.mutex;
+    <span data-count="132">l</span>et r =
       try
-        while Queue.is_empt<span data-count="122">y</span> q.queue do
-          <span data-count="2">i</span>f q.producers = <span data-count="2">0</span> || q.faile<span data-count="0">d</span> then <span data-count="2">r</span>aise Exit;
-          <span data-count="0">C</span>ondition.wai<span data-count="0">t</span> q.cond q.mutex
+        while Queue.is_empt<span data-count="133">y</span> q.queue do
+          <span data-count="3">i</span>f q.producers = <span data-count="2">0</span> || q.faile<span data-count="0">d</span> then <span data-count="2">r</span>aise Exit;
+          <span data-count="1">C</span>ondition.wai<span data-count="1">t</span> q.cond q.mutex
         done;
         let v = Queue.pop q.queue in
-        <span data-count="120">S</span>ome v
+        <span data-count="130">S</span>ome v
       with <span data-count="2">E</span>xit -&gt; None
     in
     Mutex.unlock q.mutex;
-    <span data-count="122">r</span>
+    <span data-count="132">r</span>
 
   let rec read_as_seq (q : 'a t) : 'a Seq.t =
-   <span data-count="127">f</span>un () -&gt;
-    <span data-count="122">m</span>atch take_as_consumer q with
+   <span data-count="137">f</span>un () -&gt;
+    <span data-count="132">m</span>atch take_as_consumer q with
     | <span data-count="2">N</span>one -&gt; Nil
-    | <span data-count="120">S</span>ome v -&gt; Cons (v, read_as_se<span data-count="120">q</span> q)
+    | <span data-count="130">S</span>ome v -&gt; Cons (v, read_as_se<span data-count="130">q</span> q)
 
   let produce (q : 'a t) (f : 'a -&gt; unit) =
     <span data-count="28">l</span>et rec loop () =
-      <span data-count="238">m</span>atch take_as_producer q with
+      <span data-count="282">m</span>atch take_as_producer q with
       | <span data-count="24">N</span>one -&gt; ()
-      | <span data-count="214">S</span>ome v -&gt;
+      | <span data-count="256">S</span>ome v -&gt;
         f v;
-        <span data-count="210">l</span>oop ()
+        <span data-count="254">l</span>oop ()
     in
     Mutex.lock q.mutex;
     <span data-count="28">q</span>.producers &lt;- q.producers + 1;
@@ -1199,11 +1198,11 @@ module WQ = struct
     <span data-count="28">l</span>oop ()
 
   let push v q =
-    <span data-count="428">M</span>utex.lock q.mutex;
-    <span data-count="428">l</span>et was_empty = Queue.is_empty q.queue in
-    <span data-count="428">Q</span>ueue.push v q.queue;
-    <span data-count="428">i</span>f was_empty then <span data-count="48">C</span>ondition.broadcas<span data-count="48">t</span> q.cond;
-    <span data-count="428">M</span>utex.unlock q.mutex
+    <span data-count="512">M</span>utex.lock q.mutex;
+    <span data-count="510">l</span>et was_empty = Queue.is_empty q.queue in
+    <span data-count="510">Q</span>ueue.push v q.queue;
+    <span data-count="510">i</span>f was_empty then <span data-count="44">C</span>ondition.broadcas<span data-count="44">t</span> q.cond;
+    <span data-count="510">M</span>utex.unlock q.mutex
 
   let fail q =
     <span data-count="0">M</span>utex.lock q.mutex;
@@ -1272,25 +1271,25 @@ module MT = struct
     | Choice_i32 : S.int32 -&gt; int32 t
     | Trap : Trap.t -&gt; 'a t
 
-  let return v = <span data-count="37031">R</span>etv v [@@inline]
+  let return v = <span data-count="44441">R</span>etv v [@@inline]
 
   let bind : type a b. a t -&gt; (a -&gt; b t) -&gt; b t =
    fun v f -&gt;
-    <span data-count="53803">m</span>atch v with
+    <span data-count="64453">m</span>atch v with
     | <span data-count="0">E</span>mpty -&gt; Empty
     | <span data-count="4">T</span>rap t -&gt; Trap t
-    | <span data-count="35095">R</span>etv v -&gt; f v
-    | <span data-count="5">A</span>ssert _ | <span data-count="10773">R</span>et _ | <span data-count="215">C</span>hoice _ | <span data-count="1">C</span>hoice_i32 _ -&gt; Bind (v, f)
-    | <span data-count="7722">B</span>ind _ -&gt; Bind (v, f)
+    | <span data-count="42134">R</span>etv v -&gt; f v
+    | <span data-count="5">A</span>ssert _ | <span data-count="12868">R</span>et _ | <span data-count="251">C</span>hoice _ | <span data-count="1">C</span>hoice_i32 _ -&gt; Bind (v, f)
+    | <span data-count="9206">B</span>ind _ -&gt; Bind (v, f)
   [@@inline]
 
   let ( let* ) = bind
 
   let select (cond : S.vbool) =
-    <span data-count="7183">m</span>atch cond.e with
-    | <span data-count="453">V</span>al True -&gt; Retv true
-    | <span data-count="6515">V</span>al False -&gt; Retv false
-    | <span data-count="215">_</span> -&gt; Choice cond
+    <span data-count="8589">m</span>atch cond.e with
+    | <span data-count="545">V</span>al True -&gt; Retv true
+    | <span data-count="7793">V</span>al False -&gt; Retv false
+    | <span data-count="251">_</span> -&gt; Choice cond
   [@@inline]
 
   let select_i32 (i : S.int32) =
@@ -1298,7 +1297,7 @@ module MT = struct
 
   let trap t = <span data-count="5">T</span>rap t
 
-  let with_thread f = <span data-count="10769">R</span>et (St (fun t -&gt; <span data-count="10767">(</span><span data-count="10768">f</span> t, t))) [@@inline]
+  let with_thread f = <span data-count="12862">R</span>et (St (fun t -&gt; <span data-count="12863">(</span><span data-count="12864">f</span> t, t))) [@@inline]
 
   let add_pc (c : S.vbool) =
     <span data-count="5">m</span>atch c.e with
@@ -1328,18 +1327,18 @@ module MT = struct
   and hold = H : Thread.t * 'a t * 'a cont -&gt; hold
 
   let local_push st v =
-    <span data-count="19897">m</span>atch st.next with
-    | <span data-count="19686">N</span>one -&gt; st.next &lt;- Some v
-    | <span data-count="211">S</span>ome _ -&gt; WQ.push v st.global.w
+    <span data-count="23774">m</span>atch st.next with
+    | <span data-count="23525">N</span>one -&gt; st.next &lt;- Some v
+    | <span data-count="251">S</span>ome _ -&gt; WQ.push v st.global.w
 
   let rec step : type v. Thread.t -&gt; v t -&gt; v cont -&gt; _ -&gt; unit =
    fun thread t cont st -&gt;
-    <span data-count="38610">m</span>atch t with
+    <span data-count="46099">m</span>atch t with
     | <span data-count="0">E</span>mpty -&gt; ()
-    | <span data-count="8900">R</span>etv v -&gt; cont.k thread (E_st st) v
-    | <span data-count="10772">R</span>et (St f) -&gt;
+    | <span data-count="10650">R</span>etv v -&gt; cont.k thread (E_st st) v
+    | <span data-count="12867">R</span>et (St f) -&gt;
       let v, thread = f thread in
-      <span data-count="10773">c</span>ont.k thread (E_st st) v
+      <span data-count="12870">c</span>ont.k thread (E_st st) v
     | <span data-count="5">T</span>rap t -&gt; WQ.push (ETrap t, thread) st.global.r
     | <span data-count="5">A</span>ssert c -&gt;
       if check c { thread with solver = st.solver } then
@@ -1348,15 +1347,15 @@ module MT = struct
         <span data-count="4">l</span>et no = S.Bool.not c in
         <span data-count="4">l</span>et thread = { thread with pc = no :: thread.pc } in
         WQ.push (EAssert c, thread) st.global.r
-    | <span data-count="18715">B</span>ind (v, f) -&gt;
+    | <span data-count="22326">B</span>ind (v, f) -&gt;
       let k thread (E_st st) v =
-        <span data-count="19894">l</span>et r = f v in
-        <span data-count="19897">l</span>ocal_push st (H (thread, r, cont))
+        <span data-count="23775">l</span>et r = f v in
+        <span data-count="23776">l</span>ocal_push st (H (thread, r, cont))
       in
       step thread v { k } st
-    | <span data-count="215">C</span>hoice cond -&gt;
+    | <span data-count="251">C</span>hoice cond -&gt;
       let cases = CList.select cond { thread with solver = st.solver } in
-      <span data-count="211">L</span>ist.iter (fun (case, thread) -&gt; <span data-count="421">c</span>ont.k thread (E_st st) case) cases
+      <span data-count="251">L</span>ist.iter (fun (case, thread) -&gt; <span data-count="502">c</span>ont.k thread (E_st st) case) cases
     | <span data-count="1">C</span>hoice_i32 i -&gt;
       let cases = CList.select_i32 i { thread with solver = st.solver } in
       <span data-count="1">L</span>ist.iter (fun (case, thread) -&gt; <span data-count="1">c</span>ont.k thread (E_st st) case) cases
@@ -1368,7 +1367,7 @@ module MT = struct
     <span data-count="7">{</span> w; r; start_counter }
 
   let push_first_work g thread t =
-    <span data-count="7">l</span>et k thread _st v = <span data-count="201">W</span>Q.push (EVal v, thread) g.r in
+    <span data-count="7">l</span>et k thread _st v = <span data-count="245">W</span>Q.push (EVal v, thread) g.r in
     WQ.push (H (thread, t, { k })) g.w
 
   let spawn_producer global _i =
@@ -1378,13 +1377,13 @@ module MT = struct
     <span data-count="28">l</span>et solver : Thread.solver = S ((module Batch), solver) in
     let st = { solver; next = None; global } in
     let rec producer (H (thread, t, cont)) =
-      <span data-count="19898">l</span>et thread = { thread with solver } in
+      <span data-count="23778">l</span>et thread = { thread with solver } in
       step thread t cont st;
-      <span data-count="19893">m</span>atch st.next with
-      | <span data-count="19683">S</span>ome h -&gt;
+      <span data-count="23775">m</span>atch st.next with
+      | <span data-count="23523">S</span>ome h -&gt;
         st.next &lt;- None;
         producer h
-      | <span data-count="210">N</span>one -&gt; ()
+      | <span data-count="254">N</span>one -&gt; ()
     in
     Domain.spawn (fun () -&gt;
         <span data-count="28">t</span>ry
@@ -1397,9 +1396,9 @@ module MT = struct
           <span data-count="0">P</span>rintexc.raise_with_backtrace e bt )
 
   let rec loop_and_do (s : 'a Seq.t) f : 'a Seq.t =
-   <span data-count="127">f</span>un () -&gt;
-    <span data-count="122">m</span>atch s () with
-    | <span data-count="120">C</span>ons (s, t) -&gt; Cons (s, loop_and_d<span data-count="120">o</span> t f)
+   <span data-count="137">f</span>un () -&gt;
+    <span data-count="132">m</span>atch s () with
+    | <span data-count="130">C</span>ons (s, t) -&gt; Cons (s, loop_and_d<span data-count="130">o</span> t f)
     | <span data-count="2">N</span>il -&gt;
       f ();
       <span data-count="2">N</span>il
