@@ -104,3 +104,40 @@ module Reference : INTERPRET = struct
 
   let name = "reference"
 end
+
+module Owi_symbolic_multicore (Symbolizer : sig
+  val symbolize : Text.modul -> Text.modul
+end) : INTERPRET = struct
+  let name = "multicore"
+
+  let parse_and_run modul : unit Result.t =
+    let modul = Symbolizer.symbolize modul in
+    let* simplified = Compile.Text.until_binary ~unsafe:false modul in
+    let* () = Typecheck.modul simplified in
+    let* regular, link_state =
+      Link.modul Link.empty_state ~name:None simplified
+    in
+    let regular = Symbolic.convert_module_to_run regular in
+    timeout_call_run (fun () ->
+        let c = Interpret.SymbolicP.modul link_state.envs regular in
+        let init_thread : Thread.t = Thread.create () in
+        let res_acc = ref [] in
+        let res_acc_mutex = Mutex.create () in
+        let jhs =
+          Symbolic_choice.run ~workers:1 Smtml.Solver_dispatcher.Z3_solver c
+            init_thread
+            ~callback:(fun (res, _) ->
+              Mutex.protect res_acc_mutex (fun () -> res_acc := res :: !res_acc) )
+            ~callback_init:(fun () -> ())
+            ~callback_end:(fun () -> ())
+        in
+        Array.iter (fun jh -> Domain.join jh) jhs;
+        match !res_acc with
+        | [ v ] -> begin
+          match v with
+          | EVal r -> r
+          | ETrap (t, _mdl) -> Error (`Trap t)
+          | EAssert (_expr, _mdl) -> Error `Assert_failure
+        end
+        | _ -> failwith "Unexpected multiple results." )
+end
