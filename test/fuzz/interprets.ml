@@ -4,11 +4,7 @@ open Syntax
 exception Timeout
 
 module type INTERPRET = sig
-  type t
-
-  val of_symbolic : Text.modul -> t
-
-  val run : t -> unit Result.t
+  val parse_and_run : Text.modul -> unit Result.t
 
   val name : string
 end
@@ -32,11 +28,7 @@ let timeout_call_run (run : unit -> unit Result.t) : 'a Result.t =
   with Timeout -> Error `Timeout
 
 module Owi_unoptimized : INTERPRET = struct
-  type t = Text.modul
-
-  let of_symbolic = Fun.id
-
-  let run modul =
+  let parse_and_run modul =
     let* simplified = Compile.Text.until_binary ~unsafe:false modul in
     let* () = Typecheck.modul simplified in
     let* regular, link_state =
@@ -49,11 +41,7 @@ module Owi_unoptimized : INTERPRET = struct
 end
 
 module Owi_optimized : INTERPRET = struct
-  type t = Text.modul
-
-  let of_symbolic = Fun.id
-
-  let run modul =
+  let parse_and_run modul =
     let* simplified = Compile.Text.until_binary ~unsafe:false modul in
     let* () = Typecheck.modul simplified in
     let simplified = Optimize.modul simplified in
@@ -67,13 +55,9 @@ module Owi_optimized : INTERPRET = struct
 end
 
 module Owi_symbolic : INTERPRET = struct
-  type t = Text.modul
-
-  let of_symbolic = Fun.id
-
   let dummy_workers_count = 42
 
-  let run modul : unit Result.t =
+  let parse_and_run modul : unit Result.t =
     let* simplified = Compile.Text.until_binary ~unsafe:false modul in
     let* () = Typecheck.modul simplified in
     let* regular, link_state =
@@ -96,11 +80,8 @@ module Owi_symbolic : INTERPRET = struct
 end
 
 module Reference : INTERPRET = struct
-  type t = string
-
-  let of_symbolic modul = Format.asprintf "%a" Text.pp_modul modul
-
-  let run modul : unit Result.t =
+  let parse_and_run modul : unit Result.t =
+    let modul = Format.asprintf "%a" Text.pp_modul modul in
     let prefix = "owi_fuzzer_official" in
     let suffix = ".wast" in
     let tmp_file = Filename.temp_file prefix suffix in
