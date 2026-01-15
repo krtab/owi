@@ -16,20 +16,26 @@ module CoreImpl = struct
         A monad representing computation that can be cooperatively scheduled and may need
         Worker Local Storage (WLS). Computations can yield, and fork (Choice).
       *)
-    type ('a, 'wls) t = Sched of ('wls -> ('a, 'wls) status) [@@unboxed]
+    type ('a, 'wls) t =
+      | Sched of ('wls -> ('a, 'wls) status)
+      | Immediate of ('a, 'wls) status
+      | Choice of ('a, 'wls) t * ('a, 'wls) t
 
     and ('a, 'wls) status =
       | Now of 'a
       | Yield of Prio.metrics * ('a, 'wls) t
-      | Choice of (('a, 'wls) status * ('a, 'wls) status)
       | Stop
+      | Pair of ('a, 'wls) status * ('a, 'wls) status
 
-    let run (Sched mxf : ('a, 'wls) t) (wls : 'wls) : ('a, 'wls) status =
-      mxf wls
+    let rec run (mxf : ('a, 'wls) t) (wls : 'wls) : ('a, 'wls) status =
+      match mxf with
+      | Sched mxf -> mxf wls
+      | Immediate v -> v
+      | Choice (mfa, mfb) -> Pair (run mfa wls, run mfb wls)
 
-    let return x : _ t = Sched (Fun.const (Now x))
+    let return x : _ t = Immediate (Now x)
 
-    let return_status status = Sched (Fun.const status)
+    let return_status status = Immediate status
 
     let rec bind (mx : ('a, 'wls) t) (f : 'a -> ('b, 'wls) t) : ('b, 'wls) t =
       Sched
@@ -38,10 +44,10 @@ module CoreImpl = struct
             match x with
             | Now x -> run (f x) wls
             | Yield (prio, lx) -> Yield (prio, bind lx f)
-            | Choice (mx1, mx2) ->
+            | Pair (mx1, mx2) ->
               let mx1' = unfold_status mx1 in
               let mx2' = unfold_status mx2 in
-              Choice (mx1', mx2')
+              Pair (mx1', mx2')
             | Stop -> Stop
           in
           unfold_status (run mx wls) )
@@ -54,9 +60,12 @@ module CoreImpl = struct
 
     let ( let+ ) = map
 
-    let yield prio = return_status (Yield (prio, Sched (Fun.const (Now ()))))
+    let yield prio = return_status (Yield (prio, Immediate (Now ())))
 
-    let choose a b = Sched (fun wls -> Choice (run a wls, run b wls))
+    let choose a b =
+      match (a, b) with
+      | Immediate a, Immediate b -> Immediate (Pair (a, b))
+      | _ -> Choice (a, b)
 
     let stop : ('a, 'b) t = return_status Stop
 
@@ -84,7 +93,7 @@ module CoreImpl = struct
         | Stop -> ()
         | Now x -> at_worker_value x
         | Yield (prio, f) -> write_back (prio, f)
-        | Choice (m1, m2) ->
+        | Pair (m1, m2) ->
           handle_status m1 write_back;
           handle_status m2 write_back
       in
